@@ -52,6 +52,7 @@ public class NodeProbeFactory {
 //        for (var vnt : VariableNodeType.values()) {
 //            PROBES.put(vnt, () -> injector.getInstance(vnt.getImplClass()));
 //        }
+        this.probes.put(VariableNodeType.PLUGIN, () -> injector.getInstance(VariableNodeType.PLUGIN.getImplClass()));
     }
 
     @Nullable

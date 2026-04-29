@@ -5,6 +5,7 @@ import com.adamk33n3r.nodegraph.nodes.constants.*;
 import com.adamk33n3r.nodegraph.nodes.logic.BooleanGate;
 import com.adamk33n3r.nodegraph.nodes.logic.Equality;
 import com.adamk33n3r.nodegraph.nodes.logic.InventoryCheck;
+import com.adamk33n3r.runelite.watchdog.alerts.InventoryAlert;
 import com.adamk33n3r.nodegraph.nodes.logic.LocationCompare;
 import com.adamk33n3r.nodegraph.nodes.utility.DisplayNode;
 import com.adamk33n3r.nodegraph.nodes.utility.NoteNode;
@@ -319,6 +320,14 @@ public class GraphPanel extends JLayeredPane {
                             break;
                         case INVENTORY_CHECK: {
                             InventoryCheck invNode = new InventoryCheck();
+                            // Pre-initialize to ITEM mode when dragging a type that's only
+                            // visible as a ConnectionPointIn in ITEM mode (not the default FULL)
+                            if (outputVar != null) {
+                                Class<?> t = outputVar.getType();
+                                if (t == String.class || t == Boolean.class || Number.class.isAssignableFrom(t)) {
+                                    invNode.getInventoryAlertType().setValue(InventoryAlert.InventoryAlertType.ITEM);
+                                }
+                            }
                             invNode.setX(px);
                             invNode.setY(py);
                             this.graph.add(invNode);

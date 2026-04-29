@@ -85,13 +85,12 @@ public class ConnectionPointOut<T> extends ConnectionPoint {
                         ConnectionPointIn<?> droppedNode = (ConnectionPointIn<?>) deepestComponentAt;
                         // Disallow connecting of incompatible types
                         if (!droppedNode.getInputVar().getType().isAssignableFrom(ConnectionPointOut.this.outputVar.getType())) {
-                            System.err.print("Incompatible connection points: ");
-                            System.err.println(ConnectionPointOut.this.outputVar.getType() + " -> " + droppedNode.getInputVar().getType());
+                            log.error("Incompatible connection points: {} -> {}", ConnectionPointOut.this.outputVar.getType(), droppedNode.getInputVar().getType());
                             return;
                         }
                         // Disallow connecting to the same node
                         if (droppedNode.getNodePanel().equals(ConnectionPointOut.this.getNodePanel())) {
-                            System.err.println("Cannot connect to the same node");
+                            log.error("Cannot connect to the same node");
                             return;
                         }
                         // This is ok since we checked above
