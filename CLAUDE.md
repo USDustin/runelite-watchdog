@@ -83,3 +83,17 @@ Fields annotated `@Bind` in test classes are automatically bound in the Guice in
 - Always include unit tests in plans for any new feature or bug fix
 - Write tests before implementation (TDD)
 - Do not write tests for Swing components directly since, but for the code that it uses
+
+## Agent skills
+
+### Issue tracker
+
+Issues live in this repo's GitHub Issues (uses the `gh` CLI). See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default label vocabulary (`needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`). See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context layout — one `CONTEXT.md` + `docs/adr/` at the repo root. See `docs/agents/domain.md`.

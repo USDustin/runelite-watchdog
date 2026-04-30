@@ -31,6 +31,7 @@ import com.adamk33n3r.nodegraph.nodes.utility.DisplayNode;
 import com.adamk33n3r.nodegraph.nodes.utility.NoteNode;
 import com.adamk33n3r.nodegraph.nodes.utility.ToStringNode;
 import com.adamk33n3r.runelite.watchdog.alerts.*;
+import com.adamk33n3r.runelite.watchdog.serialization.AlertMigrator;
 
 import com.adamk33n3r.runelite.watchdog.elevenlabs.ElevenLabs;
 import com.adamk33n3r.runelite.watchdog.hub.AlertHubCategory;
@@ -42,7 +43,6 @@ import com.adamk33n3r.runelite.watchdog.ui.ComparableNumber;
 import com.adamk33n3r.runelite.watchdog.ui.panels.PanelUtils;
 
 import net.runelite.client.config.ConfigManager;
-import net.runelite.client.config.FlashNotification;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonSyntaxException;
@@ -91,6 +91,9 @@ public class AlertManager {
 
     @Inject
     private WatchdogPlugin plugin;
+
+    @Inject
+    private AlertMigrator alertMigrator;
 
     @Inject
     @Named("watchdog.pluginVersion")
@@ -592,133 +595,10 @@ public class AlertManager {
         log.debug("currentVersion: {}", currentVersion);
         log.debug("configVersion: {}", configVersion);
         if (currentVersion.compareTo(configVersion) > 0) {
-            log.debug("Checking if data migration needed");
-            // Changed Stat Drain to Stat Change in v2.4.0, so need to swap sign of drainAmount and move to new alert
-            if (configVersion.compareTo(new Version("2.4.0")) < 0) {
-                log.debug("Need to convert StatDrainAlerts to StatChangedAlerts");
-                this.alerts.replaceAll(alert -> {
-                    if (alert instanceof StatDrainAlert) {
-                        StatDrainAlert statDrainAlert = (StatDrainAlert) alert;
-                        StatChangedAlert statChangedAlert = new StatChangedAlert();
-                        statChangedAlert.setName(statDrainAlert.getName());
-                        statChangedAlert.setEnabled(statDrainAlert.isEnabled());
-                        statChangedAlert.setDebounceTime(statDrainAlert.getDebounceTime());
-                        statChangedAlert.setSkill(statDrainAlert.getSkill());
-                        statChangedAlert.setChangedAmount(-statDrainAlert.getDrainAmount());
-                        if (statChangedAlert.getNotifications() != null && statDrainAlert.getNotifications() != null) {
-                            statChangedAlert.getNotifications().addAll(statDrainAlert.getNotifications());
-                        }
-                        return statChangedAlert;
-                    }
-
-                    return alert;
-                });
-
-                // Not sure why I thought it was a good idea to store the decibels in the JSON
-                log.debug("Need to convert all Sound and TTS gain back to 0,10 scale.");
-                this.alerts.stream()
-                    .filter(alert -> !(alert instanceof AlertGroup) && !(alert instanceof AdvancedAlert))
-                    .flatMap(alert -> Objects.requireNonNull(alert.getNotifications()).stream())
-                    .filter(notification -> notification instanceof IAudioNotification)
-                    .map(notification -> (IAudioNotification) notification)
-                    .forEach(sound -> sound.setGain(Util.scale(sound.getGain(), -25, 5, 0, 10)));
-            }
-
-            if (configVersion.compareTo(new Version("2.8.0")) < 0) {
-                log.debug("Need to convert flash notifications to new properties");
-                this.alerts.stream()
-                    .filter(alert -> !(alert instanceof AlertGroup) &&  !(alert instanceof AdvancedAlert))
-                    .flatMap(alert -> Objects.requireNonNull(alert.getNotifications()).stream())
-                    .filter(notification -> notification instanceof ScreenFlash)
-                    .map(notification -> (ScreenFlash) notification)
-                    .forEach(screenFlash -> {
-                        FlashNotification oldEnum = screenFlash.getFlashNotification();
-                        screenFlash.setFlashMode((oldEnum == FlashNotification.SOLID_TWO_SECONDS || oldEnum == FlashNotification.SOLID_UNTIL_CANCELLED) ? FlashMode.SOLID : FlashMode.FLASH);
-                        screenFlash.setFlashDuration((oldEnum == FlashNotification.FLASH_TWO_SECONDS || oldEnum == FlashNotification.SOLID_TWO_SECONDS) ? 2 : 0);
-                        screenFlash.setFlashNotification(null);
-                    });
-            }
-
-            if (configVersion.compareTo(new Version("2.13.0")) < 0) {
-                log.debug("Need to set default overlay notification text color");
-                this.alerts.stream()
-                    .filter(alert -> !(alert instanceof AlertGroup) && !(alert instanceof AdvancedAlert))
-                    .flatMap(alert -> Objects.requireNonNull(alert.getNotifications()).stream())
-                    .filter(notification -> notification instanceof Overlay)
-                    .map(notification -> (Overlay) notification)
-                    .forEach(overlay -> {
-                        if (overlay.getTextColor() == null) {
-                            overlay.setTextColor(WatchdogConfig.DEFAULT_NOTIFICATION_TEXT_COLOR);
-                        }
-                    });
-            }
-
-            if (configVersion.compareTo(new Version("3.14.0")) < 0) {
-                log.debug("Need to migrate pattern matchers from matches to find");
-                this.getAllAlerts()
-                    .filter(alert -> alert instanceof RegexMatcher)
-                    .map(alert -> (RegexMatcher) alert)
-                    .forEach(alert -> {
-                        String prevPattern = alert.getPattern();
-                        if (!prevPattern.isEmpty()) {
-                            upgrade_3_14_0_patterns(
-                                alert::getPattern,
-                                alert::isRegexEnabled,
-                                alert::setPattern,
-                                alert::setRegexEnabled
-                            );
-                            log.debug("Migrating alert {} from {} to {}", ((Alert) alert).getName(), prevPattern, alert.getPattern());
-                        }
-
-                        if (alert instanceof OverheadTextAlert) {
-                            var overHeadTextAlert = (OverheadTextAlert) alert;
-                            if (overHeadTextAlert.getNpcName().isEmpty()) {
-                                return;
-                            }
-                            upgrade_3_14_0_patterns(
-                                overHeadTextAlert::getNpcName,
-                                overHeadTextAlert::isNpcRegexEnabled,
-                                overHeadTextAlert::setNpcName,
-                                overHeadTextAlert::setNpcRegexEnabled
-                            );
-                        }
-                    });
-            }
-
+            log.debug("Running data migration from {} to {}", configVersion, currentVersion);
+            this.alertMigrator.migrate(this.alerts, configVersion);
             this.configManager.setConfiguration(WatchdogConfig.CONFIG_GROUP_NAME, WatchdogConfig.PLUGIN_VERSION, currentVersion.getVersion());
             this.saveAlerts();
         }
     }
-
-    private void upgrade_3_14_0_patterns(
-        Supplier<String> patternSupplier,
-        Supplier<Boolean> regexEnabledSupplier,
-        Consumer<String> patternSave,
-        Consumer<Boolean> regexEnabledSave
-    ) {
-        String pattern = patternSupplier.get();
-        // If the pattern is not a regex, and it doesn't start with * or end with *
-        // then convert it to a regex and proceed with the conversion
-        if (!regexEnabledSupplier.get()) {
-            if (!pattern.startsWith("*") || !pattern.endsWith("*")) {
-                pattern = Util.createRegexFromGlob(pattern);
-                regexEnabledSave.accept(true);
-            } else if (pattern.length() > 1) {
-                pattern = pattern.substring(1, pattern.length() - 1);
-            }
-        }
-
-        if (regexEnabledSupplier.get()) {
-            // if the beginning of the pattern is not a ^ then add one
-            if (!pattern.startsWith("^")) {
-                pattern = "^" + pattern;
-            }
-            // if the end of the pattern is not a $ then add one
-            if (!pattern.endsWith("$")) {
-                pattern = pattern + "$";
-            }
-        }
-
-        patternSave.accept(pattern);
-    };
 }

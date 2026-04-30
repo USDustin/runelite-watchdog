@@ -107,7 +107,7 @@ tasks.register("shadowJar", Jar) {
     destinationDirectory = file('jars')
     doLast {
         println("file://"+destinationDirectory.get().asFile.toURI().rawPath)
-        println(archiveFileName)
+        println(archiveFileName.get())
     }
 }
 tasks.register("shadowJarNGE", Jar) {
@@ -148,6 +148,6 @@ tasks.register("shadowJarNGE", Jar) {
     destinationDirectory = file('jars')
     doLast {
         println("file://"+destinationDirectory.get().asFile.toURI().rawPath)
-        println(archiveFileName)
+        println(archiveFileName.get())
     }
 }
