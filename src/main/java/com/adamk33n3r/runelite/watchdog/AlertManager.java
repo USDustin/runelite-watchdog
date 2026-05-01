@@ -1,44 +1,15 @@
 package com.adamk33n3r.runelite.watchdog;
 
-import com.adamk33n3r.nodegraph.Graph;
-import com.adamk33n3r.nodegraph.GraphSerializer;
-import com.adamk33n3r.nodegraph.NodeTypeRegistry;
 import com.adamk33n3r.nodegraph.nodes.ActionNode;
 import com.adamk33n3r.nodegraph.nodes.TriggerNode;
-import com.adamk33n3r.nodegraph.nodes.constants.Bool;
-import com.adamk33n3r.nodegraph.nodes.constants.Inventory;
-import com.adamk33n3r.nodegraph.nodes.constants.Location;
-import com.adamk33n3r.nodegraph.nodes.constants.Num;
-import com.adamk33n3r.nodegraph.nodes.constants.PluginState;
-import com.adamk33n3r.nodegraph.nodes.flow.Branch;
-import com.adamk33n3r.nodegraph.nodes.flow.DelayNode;
-import com.adamk33n3r.nodegraph.nodes.flow.TimerNode;
-import com.adamk33n3r.nodegraph.nodes.logic.BooleanGate;
-import com.adamk33n3r.nodegraph.nodes.logic.Equality;
-import com.adamk33n3r.nodegraph.nodes.logic.InventoryCheck;
-import com.adamk33n3r.nodegraph.nodes.logic.LocationCompare;
-import com.adamk33n3r.nodegraph.nodes.math.Add;
-import com.adamk33n3r.nodegraph.nodes.math.Ceiling;
-import com.adamk33n3r.nodegraph.nodes.math.Clamp;
-import com.adamk33n3r.nodegraph.nodes.math.Floor;
-import com.adamk33n3r.nodegraph.nodes.math.Round;
-import com.adamk33n3r.nodegraph.nodes.math.Divide;
-import com.adamk33n3r.nodegraph.nodes.math.Max;
-import com.adamk33n3r.nodegraph.nodes.math.Min;
-import com.adamk33n3r.nodegraph.nodes.math.Multiply;
-import com.adamk33n3r.nodegraph.nodes.math.Subtract;
-import com.adamk33n3r.nodegraph.nodes.utility.DisplayNode;
-import com.adamk33n3r.nodegraph.nodes.utility.NoteNode;
-import com.adamk33n3r.nodegraph.nodes.utility.ToStringNode;
 import com.adamk33n3r.runelite.watchdog.alerts.*;
 import com.adamk33n3r.runelite.watchdog.serialization.AlertMigrator;
+import com.adamk33n3r.runelite.watchdog.serialization.WatchdogGsonFactory;
 
 import com.adamk33n3r.runelite.watchdog.elevenlabs.ElevenLabs;
-import com.adamk33n3r.runelite.watchdog.hub.AlertHubCategory;
 import com.adamk33n3r.runelite.watchdog.notifications.*;
 import com.adamk33n3r.runelite.watchdog.notifications.tts.TTSSource;
 import com.adamk33n3r.runelite.watchdog.notifications.tts.Voice;
-import com.adamk33n3r.runelite.watchdog.notifications.objectmarkers.ObjectMarker;
 import com.adamk33n3r.runelite.watchdog.ui.ComparableNumber;
 import com.adamk33n3r.runelite.watchdog.ui.panels.PanelUtils;
 
@@ -61,7 +32,6 @@ import java.lang.reflect.Type;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.function.Consumer;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
@@ -108,105 +78,11 @@ public class AlertManager {
     }
 
     @Inject
+    private WatchdogGsonFactory gsonFactory;
+
+    @Inject
     private void init() {
-        // Add new alert types here
-        final RuntimeTypeAdapterFactory<Alert> alertTypeFactory = RuntimeTypeAdapterFactory.of(Alert.class)
-            .ignoreSubtype("IdleAlert")
-            .ignoreSubtype("ResourceAlert")
-            .recognizeSubtypes()
-            .registerSubtype(ChatAlert.class)
-            .registerSubtype(PlayerChatAlert.class)
-            .registerSubtype(OverheadTextAlert.class)
-            .registerSubtype(NotificationFiredAlert.class)
-            .registerSubtype(StatDrainAlert.class)
-            .registerSubtype(StatChangedAlert.class)
-            .registerSubtype(XPDropAlert.class)
-            .registerSubtype(SoundFiredAlert.class)
-            .registerSubtype(SpawnedAlert.class)
-            .registerSubtype(InventoryAlert.class)
-            .registerSubtype(AlertGroup.class)
-            .registerSubtype(LocationAlert.class)
-            .registerSubtype(AdvancedAlert.class);
-        // Add new notification types here
-        final RuntimeTypeAdapterFactory<Notification> notificationTypeFactory = RuntimeTypeAdapterFactory.of(Notification.class)
-            .registerSubtype(TrayNotification.class)
-            .registerSubtype(TextToSpeech.class)
-            .registerSubtype(Sound.class)
-            .registerSubtype(SoundEffect.class)
-            .registerSubtype(ScreenFlash.class)
-            .registerSubtype(GameMessage.class)
-            .registerSubtype(Overhead.class)
-            .registerSubtype(Overlay.class)
-            .registerSubtype(Popup.class)
-            .registerSubtype(RequestFocus.class)
-            .registerSubtype(NotificationEvent.class)
-            .registerSubtype(ScreenMarker.class)
-            .registerSubtype(ObjectMarker.class)
-            .registerSubtype(Dink.class)
-            .registerSubtype(Counter.class)
-            .registerSubtype(ShortestPath.class)
-            .registerSubtype(PluginMessage.class)
-            .registerSubtype(PluginToggle.class)
-            .registerSubtype(AlertToggle.class)
-            .registerSubtype(DismissObjectMarker.class)
-            .registerSubtype(DismissOverlay.class)
-            .registerSubtype(DismissScreenMarker.class);
-        // Add new nodes here
-        NodeTypeRegistry nodeRegistry = new NodeTypeRegistry()
-            // Trigger and action nodes (complex — carry domain objects outside of vars)
-            .registerSubtype(TriggerNode.class,
-                (json, gson) -> new TriggerNode(gson.fromJson(json.get("alert"), Alert.class)),
-                (node, obj, gson) -> obj.add("alert", gson.toJsonTree(node.getAlert(), Alert.class)))
-            .registerSubtype(ActionNode.class,
-                (json, gson) -> new ActionNode(gson.fromJson(json.get("notification"), com.adamk33n3r.runelite.watchdog.notifications.Notification.class)),
-                (node, obj, gson) -> obj.add("notification", gson.toJsonTree(node.getNotification(), com.adamk33n3r.runelite.watchdog.notifications.Notification.class)))
-            .registerAlias("NotificationNode", ActionNode.class)
-            // Math nodes (simple — all state in registered vars)
-            .registerSubtype(Add.class, Add::new)
-            .registerSubtype(Subtract.class, Subtract::new)
-            .registerSubtype(Multiply.class, Multiply::new)
-            .registerSubtype(Divide.class, Divide::new)
-            .registerSubtype(Min.class, Min::new)
-            .registerSubtype(Max.class, Max::new)
-            .registerSubtype(Clamp.class, Clamp::new)
-            .registerSubtype(Floor.class, Floor::new)
-            .registerSubtype(Ceiling.class, Ceiling::new)
-            .registerSubtype(Round.class, Round::new)
-            // Logic nodes (simple)
-            .registerSubtype(BooleanGate.class, BooleanGate::new)
-            .registerSubtype(Equality.class, Equality::new)
-            // Constant nodes (simple)
-            .registerSubtype(Bool.class, Bool::new)
-            .registerSubtype(Num.class, Num::new)
-            .registerSubtype(Location.class, Location::new)
-            .registerSubtype(Inventory.class, Inventory::new)
-            // Variable nodes with extra non-var state
-            .registerSubtype(PluginState.class, PluginState::new)
-            .registerAlias("PluginVar", PluginState.class)
-            .registerSubtype(InventoryCheck.class, InventoryCheck::new)
-            .registerAlias("InventoryVar", InventoryCheck.class)
-            .registerSubtype(LocationCompare.class, LocationCompare::new)
-            // Flow nodes
-            .registerSubtype(DelayNode.class, DelayNode::new)
-            .registerAlias("Delay", DelayNode.class)
-            .registerSubtype(com.adamk33n3r.nodegraph.nodes.flow.Counter.class, com.adamk33n3r.nodegraph.nodes.flow.Counter::new)
-            .registerSubtype(TimerNode.class, TimerNode::new)
-            .registerAlias("Timer", TimerNode.class)
-            .registerSubtype(Branch.class, Branch::new)
-            // Utility nodes
-            .registerSubtype(DisplayNode.class, DisplayNode::new)
-            .registerSubtype(NoteNode.class, NoteNode::new)
-            .registerSubtype(ToStringNode.class, ToStringNode::new);
-        Gson intermediateGson = this.clientGson.newBuilder()
-//            .serializeNulls()
-            .registerTypeAdapterFactory(alertTypeFactory)
-            .registerTypeAdapterFactory(notificationTypeFactory)
-            .registerTypeAdapter(AlertHubCategory.class, new MixedCaseEnumAdapter())
-            .create();
-        GraphSerializer graphSerializer = new GraphSerializer(intermediateGson, nodeRegistry);
-        this.gson = intermediateGson.newBuilder()
-            .registerTypeAdapter(Graph.class, graphSerializer)
-            .create();
+        this.gson = this.gsonFactory.create(this.clientGson);
     }
 
     public void createStarterAlertsIfEmpty() {

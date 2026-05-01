@@ -2,7 +2,6 @@ package com.adamk33n3r.runelite.watchdog.nodegraph;
 
 import com.adamk33n3r.nodegraph.Connection;
 import com.adamk33n3r.nodegraph.Graph;
-import com.adamk33n3r.nodegraph.NodeTypeRegistry;
 import com.adamk33n3r.nodegraph.nodes.ActionNode;
 import com.adamk33n3r.nodegraph.nodes.TriggerNode;
 import com.adamk33n3r.nodegraph.nodes.constants.Bool;
@@ -10,26 +9,14 @@ import com.adamk33n3r.nodegraph.nodes.constants.Inventory;
 import com.adamk33n3r.nodegraph.nodes.constants.Location;
 import com.adamk33n3r.nodegraph.nodes.constants.Num;
 import com.adamk33n3r.nodegraph.nodes.constants.PluginState;
-import com.adamk33n3r.nodegraph.nodes.flow.Branch;
 import com.adamk33n3r.nodegraph.nodes.flow.Counter;
 import com.adamk33n3r.nodegraph.nodes.flow.DelayNode;
-import com.adamk33n3r.nodegraph.nodes.flow.TimerNode;
-import com.adamk33n3r.nodegraph.nodes.logic.BooleanGate;
-import com.adamk33n3r.nodegraph.nodes.logic.Equality;
 import com.adamk33n3r.nodegraph.nodes.logic.InventoryCheck;
 import com.adamk33n3r.nodegraph.nodes.logic.LocationCompare;
-import com.adamk33n3r.nodegraph.nodes.math.*;
-import com.adamk33n3r.nodegraph.nodes.utility.DisplayNode;
-import com.adamk33n3r.nodegraph.nodes.utility.NoteNode;
-import com.adamk33n3r.nodegraph.nodes.utility.ToStringNode;
-import com.adamk33n3r.runelite.watchdog.RuntimeTypeAdapterFactory;
-import com.adamk33n3r.runelite.watchdog.alerts.Alert;
-import com.adamk33n3r.runelite.watchdog.alerts.AdvancedAlert;
 import com.adamk33n3r.runelite.watchdog.alerts.ChatAlert;
-import com.adamk33n3r.nodegraph.GraphSerializer;
 import com.adamk33n3r.runelite.watchdog.alerts.InventoryAlert;
-import com.adamk33n3r.runelite.watchdog.notifications.Notification;
 import com.adamk33n3r.runelite.watchdog.notifications.ScreenFlash;
+import com.adamk33n3r.runelite.watchdog.serialization.WatchdogGsonFactory;
 import com.adamk33n3r.runelite.watchdog.ui.ComparableNumber;
 
 import com.google.gson.Gson;
@@ -46,61 +33,7 @@ public class GraphSerializerTest {
 
     @Before
     public void setup() {
-        RuntimeTypeAdapterFactory<Alert> alertFactory = RuntimeTypeAdapterFactory.of(Alert.class)
-            .recognizeSubtypes()
-            .registerSubtype(ChatAlert.class)
-            .registerSubtype(AdvancedAlert.class);
-        RuntimeTypeAdapterFactory<Notification> notifFactory = RuntimeTypeAdapterFactory.of(Notification.class)
-            .registerSubtype(ScreenFlash.class);
-        Gson intermediateGson = RuneLiteAPI.GSON.newBuilder()
-            .registerTypeAdapterFactory(alertFactory)
-            .registerTypeAdapterFactory(notifFactory)
-            .create();
-        GraphSerializer serializer = new GraphSerializer(intermediateGson, buildRegistry(intermediateGson));
-        this.gson = intermediateGson.newBuilder()
-            .registerTypeAdapter(Graph.class, serializer)
-            .create();
-    }
-
-    private static NodeTypeRegistry buildRegistry(Gson subGson) {
-        return new NodeTypeRegistry()
-            .registerSubtype(TriggerNode.class,
-                (json, gson) -> new TriggerNode(subGson.fromJson(json.get("alert"), Alert.class)),
-                (node, obj, gson) -> obj.add("alert", subGson.toJsonTree(node.getAlert(), Alert.class)))
-            .registerSubtype(ActionNode.class,
-                (json, gson) -> new ActionNode(subGson.fromJson(json.get("notification"), Notification.class)),
-                (node, obj, gson) -> obj.add("notification", subGson.toJsonTree(node.getNotification(), Notification.class)))
-            .registerAlias("NotificationNode", ActionNode.class)
-            .registerSubtype(Add.class, Add::new)
-            .registerSubtype(Subtract.class, Subtract::new)
-            .registerSubtype(Multiply.class, Multiply::new)
-            .registerSubtype(Divide.class, Divide::new)
-            .registerSubtype(Min.class, Min::new)
-            .registerSubtype(Max.class, Max::new)
-            .registerSubtype(Clamp.class, Clamp::new)
-            .registerSubtype(Floor.class, Floor::new)
-            .registerSubtype(Ceiling.class, Ceiling::new)
-            .registerSubtype(Round.class, Round::new)
-            .registerSubtype(BooleanGate.class, BooleanGate::new)
-            .registerSubtype(Equality.class, Equality::new)
-            .registerSubtype(Bool.class, Bool::new)
-            .registerSubtype(Num.class, Num::new)
-            .registerSubtype(Location.class, Location::new)
-            .registerSubtype(Inventory.class, Inventory::new)
-            .registerSubtype(PluginState.class, PluginState::new)
-            .registerAlias("PluginVar", PluginState.class)
-            .registerSubtype(InventoryCheck.class, InventoryCheck::new)
-            .registerAlias("InventoryVar", InventoryCheck.class)
-            .registerSubtype(LocationCompare.class, LocationCompare::new)
-            .registerSubtype(DelayNode.class, DelayNode::new)
-            .registerAlias("Delay", DelayNode.class)
-            .registerSubtype(com.adamk33n3r.nodegraph.nodes.flow.Counter.class, com.adamk33n3r.nodegraph.nodes.flow.Counter::new)
-            .registerSubtype(TimerNode.class, TimerNode::new)
-            .registerAlias("Timer", TimerNode.class)
-            .registerSubtype(Branch.class, Branch::new)
-            .registerSubtype(DisplayNode.class, DisplayNode::new)
-            .registerSubtype(NoteNode.class, NoteNode::new)
-            .registerSubtype(ToStringNode.class, ToStringNode::new);
+        this.gson = new WatchdogGsonFactory().create(RuneLiteAPI.GSON);
     }
 
     @Test

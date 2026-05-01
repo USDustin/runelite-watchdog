@@ -1,15 +1,8 @@
 package com.adamk33n3r.runelite.watchdog.nodegraph;
 
 import com.adamk33n3r.nodegraph.Graph;
-import com.adamk33n3r.nodegraph.NodeTypeRegistry;
 import com.adamk33n3r.nodegraph.nodes.utility.NoteNode;
-import com.adamk33n3r.runelite.watchdog.RuntimeTypeAdapterFactory;
-import com.adamk33n3r.runelite.watchdog.alerts.Alert;
-import com.adamk33n3r.runelite.watchdog.alerts.AdvancedAlert;
-import com.adamk33n3r.runelite.watchdog.alerts.ChatAlert;
-import com.adamk33n3r.nodegraph.GraphSerializer;
-import com.adamk33n3r.runelite.watchdog.notifications.Notification;
-import com.adamk33n3r.runelite.watchdog.notifications.ScreenFlash;
+import com.adamk33n3r.runelite.watchdog.serialization.WatchdogGsonFactory;
 
 import com.google.gson.Gson;
 import net.runelite.http.api.RuneLiteAPI;
@@ -24,22 +17,7 @@ public class NoteNodeTest {
 
     @Before
     public void setup() {
-        RuntimeTypeAdapterFactory<Alert> alertFactory = RuntimeTypeAdapterFactory.of(Alert.class)
-            .recognizeSubtypes()
-            .registerSubtype(ChatAlert.class)
-            .registerSubtype(AdvancedAlert.class);
-        RuntimeTypeAdapterFactory<Notification> notifFactory = RuntimeTypeAdapterFactory.of(Notification.class)
-            .registerSubtype(ScreenFlash.class);
-        NodeTypeRegistry registry = new NodeTypeRegistry()
-            .registerSubtype(NoteNode.class, NoteNode::new);
-        Gson intermediateGson = RuneLiteAPI.GSON.newBuilder()
-            .registerTypeAdapterFactory(alertFactory)
-            .registerTypeAdapterFactory(notifFactory)
-            .create();
-        GraphSerializer serializer = new GraphSerializer(intermediateGson, registry);
-        this.gson = intermediateGson.newBuilder()
-            .registerTypeAdapter(Graph.class, serializer)
-            .create();
+        this.gson = new WatchdogGsonFactory().create(RuneLiteAPI.GSON);
     }
 
     @Test
