@@ -1,5 +1,37 @@
 # Changelog
 
+## v4.0.0
+
+### New Features
+
+#### Convert to Advanced Alert
+
+Any existing alert (or alert group) can now be converted to an **Advanced Alert** in one click via the new **"Convert to Advanced Alert"** button in the alert detail panel. The converter:
+
+- Creates a new Advanced Alert whose graph mirrors the original alert's trigger + notification chain
+- Each notification with a delay gets a **Delay** node inserted between the trigger and action nodes
+- Alert groups are flattened — each leaf alert becomes its own trigger row in the graph, laid out in parallel
+
+> Nested groups (groups containing other groups) are not converted — a warning is shown in that case.
+
+---
+
+#### Graph Editor Improvements
+
+- **Node collapsing** — nodes can now be collapsed to just their title bar by clicking the **▼** button in the header, or by double-clicking the title. Collapsed state is saved and restored with the graph.
+- **NoteNode auto-resize** — the Note node now resizes as you type instead of requiring a manual repaint
+- **InventoryCheck drag-to-create** — dragging from a `String`, `Boolean`, or `Number` output pin and releasing on empty canvas to create an **InventoryCheck** node now pre-selects **Item** mode automatically, since those pin types are only connectable in Item mode
+- **Enum pin colour** — enum-typed connection pins are now rendered transparent rather than the default grey, reflecting that enum wiring is not yet supported
+
+---
+
+### Bug Fixes
+
+- **Spawned events with name `"null"`** — game objects whose name is the literal string `"null"` are now skipped, preventing spurious matches on unnamed entities
+- **Banned-area enforcement tightened** — the banned-area check now fires at the very top of each event handler (`ChatMessage`, `NotificationFired`, `StatChanged`, `XPDrop`, `SoundEffect`, `InventoryChanged`, `ItemSpawned`/`ItemDespawned`). Previously the check only ran when a notification was about to fire, meaning the full alert-matching pipeline (including graph traversal) still executed inside banned regions
+
+---
+
 ## v4.0.0-beta.3
 
 > **This is a beta release.** Advanced Alerts are experimental and may have rough edges. Please report any issues you encounter!
