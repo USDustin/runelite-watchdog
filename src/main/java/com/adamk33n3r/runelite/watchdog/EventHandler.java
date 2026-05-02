@@ -562,7 +562,7 @@ public class EventHandler {
     }
 
     void onSpawned(@Nullable String name, int id, WorldPoint location, SpawnedAlert.SpawnedDespawned mode, SpawnedAlert.SpawnedType type, Predicate<SpawnedAlert> additionalFilter) {
-        if (name == null) {
+        if (name == null || name.equals("null")) {
             return;
         }
         // Fast path: skip the whole pipeline when no relevant alerts are configured (common during region loads)
