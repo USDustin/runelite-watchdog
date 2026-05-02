@@ -101,6 +101,7 @@ public class EventHandler {
     //region Chat Message
     @Subscribe
     public void onChatMessage(ChatMessage chatMessage) {
+        if (this.plugin.isInBannedArea()) return;
         // Don't process messages sent by this plugin
         if (chatMessage.getName().equals(this.plugin.getName())) {
             return;
@@ -161,6 +162,7 @@ public class EventHandler {
     //region Notification
     @Subscribe
     public void onNotificationFired(NotificationFired notificationFired) {
+        if (this.plugin.isInBannedArea()) return;
         this.alertManager.getAllEnabledAlertsOfType(NotificationFiredAlert.class)
             .filter(notificationFiredAlert -> !this.firedByWatchdog || notificationFiredAlert.isAllowSelf())
             .forEach(notificationFiredAlert -> {
@@ -216,7 +218,7 @@ public class EventHandler {
 
     private void handleStatChanged(StatChanged statChanged) {
         Integer previousLevel = this.previousSkillLevelTable.put(statChanged.getSkill(), statChanged.getBoostedLevel());
-        if (previousLevel == null) {
+        if (previousLevel == null || this.plugin.isInBannedArea()) {
             return;
         }
 
@@ -267,7 +269,7 @@ public class EventHandler {
 
     private void handleXPDrop(StatChanged statChanged) {
         Integer previousXP = this.previousSkillXPTable.put(statChanged.getSkill(), statChanged.getXp());
-        if (previousXP == null) {
+        if (previousXP == null || this.plugin.isInBannedArea()) {
             return;
         }
 
@@ -288,11 +290,13 @@ public class EventHandler {
     //region Sound Effects
     @Subscribe
     private void onSoundEffectPlayed(SoundEffectPlayed soundEffectPlayed) {
+        if (this.plugin.isInBannedArea()) return;
         this.handleSoundEffectPlayed(soundEffectPlayed.getSoundId());
     }
 
     @Subscribe
     private void onAreaSoundEffectPlayed(AreaSoundEffectPlayed areaSoundEffectPlayed) {
+        if (this.plugin.isInBannedArea()) return;
         this.handleSoundEffectPlayed(areaSoundEffectPlayed.getSoundId());
     }
 
@@ -339,7 +343,7 @@ public class EventHandler {
         });
 
         // Skip firing alerts on the very first inventory event after login (no valid previous state yet).
-        if (this.hasInitializedInventory) {
+        if (this.hasInitializedInventory && !this.plugin.isInBannedArea()) {
             var itemMap = new InventoryItemData.InventoryItemDataMap(currentItems);
             this.previousItemsTable.forEach((itemID, data) -> itemMap.getItems()
                 .putIfAbsent(itemID, InventoryItemData.builder()
@@ -466,6 +470,7 @@ public class EventHandler {
     //region Spawned
     @Subscribe
     private void onItemSpawned(ItemSpawned itemSpawned) {
+        if (this.plugin.isInBannedArea()) return;
         ItemComposition comp = this.itemCompositionCache.computeIfAbsent(itemSpawned.getItem().getId(), this.itemManager::getItemComposition);
         final int accountType = this.getAccountType();
         final int ownership = itemSpawned.getItem().getOwnership();
@@ -474,6 +479,7 @@ public class EventHandler {
     }
     @Subscribe
     private void onItemDespawned(ItemDespawned itemDespawned) {
+        if (this.plugin.isInBannedArea()) return;
         ItemComposition comp = this.itemCompositionCache.computeIfAbsent(itemDespawned.getItem().getId(), this.itemManager::getItemComposition);
         final int accountType = this.getAccountType();
         final int ownership = itemDespawned.getItem().getOwnership();
@@ -482,18 +488,22 @@ public class EventHandler {
     }
     @Subscribe
     private void onNpcSpawned(NpcSpawned npcSpawned) {
+        if (this.plugin.isInBannedArea()) return;
         this.onActorSpawned(npcSpawned.getNpc(), npcSpawned.getNpc().getId(), NPC);
     }
     @Subscribe
     private void onNpcDespawned(NpcDespawned npcDespawned) {
+        if (this.plugin.isInBannedArea()) return;
         this.onActorDespawned(npcDespawned.getNpc(), npcDespawned.getNpc().getId(), NPC);
     }
     @Subscribe
     private void onPlayerSpawned(PlayerSpawned playerSpawned) {
+        if (this.plugin.isInBannedArea()) return;
         this.onActorSpawned(playerSpawned.getPlayer(), -1, PLAYER);
     }
     @Subscribe
     private void onPlayerDespawned(PlayerDespawned playerDespawned) {
+        if (this.plugin.isInBannedArea()) return;
         this.onActorDespawned(playerDespawned.getPlayer(), -1, PLAYER);
     }
     private void onActorSpawned(Actor actor, int id, SpawnedAlert.SpawnedType type) {
@@ -505,37 +515,45 @@ public class EventHandler {
 
     @Subscribe
     private void onGroundObjectSpawned(GroundObjectSpawned groundObjectSpawned) {
+        if (this.plugin.isInBannedArea()) return;
         this.onTileObjectSpawned(groundObjectSpawned.getGroundObject(), SPAWNED, GROUND_OBJECT);
     }
     @Subscribe
     private void onGroundObjectDespawned(GroundObjectDespawned groundObjectDespawned) {
+        if (this.plugin.isInBannedArea()) return;
         this.onTileObjectSpawned(groundObjectDespawned.getGroundObject(), DESPAWNED, GROUND_OBJECT);
     }
 
     @Subscribe
     private void onDecorativeObjectSpawned(DecorativeObjectSpawned decorativeObjectSpawned) {
+        if (this.plugin.isInBannedArea()) return;
         this.onTileObjectSpawned(decorativeObjectSpawned.getDecorativeObject(), SPAWNED, DECORATIVE_OBJECT);
     }
     @Subscribe
     private void onDecorativeObjectDespawned(DecorativeObjectDespawned decorativeObjectDespawned) {
+        if (this.plugin.isInBannedArea()) return;
         this.onTileObjectSpawned(decorativeObjectDespawned.getDecorativeObject(), DESPAWNED, DECORATIVE_OBJECT);
     }
 
     @Subscribe
     private void onGameObjectSpawned(GameObjectSpawned gameObjectSpawned) {
+        if (this.plugin.isInBannedArea()) return;
         this.onTileObjectSpawned(gameObjectSpawned.getGameObject(), SPAWNED, GAME_OBJECT);
     }
     @Subscribe
     private void onGameObjectDespawned(GameObjectDespawned gameObjectDespawned) {
+        if (this.plugin.isInBannedArea()) return;
         this.onTileObjectSpawned(gameObjectDespawned.getGameObject(), DESPAWNED, GAME_OBJECT);
     }
 
     @Subscribe
     private void onWallObjectSpawned(WallObjectSpawned wallObjectSpawned) {
+        if (this.plugin.isInBannedArea()) return;
         this.onTileObjectSpawned(wallObjectSpawned.getWallObject(), SPAWNED, WALL_OBJECT);
     }
     @Subscribe
     private void onWallObjectDespawned(WallObjectDespawned wallObjectDespawned) {
+        if (this.plugin.isInBannedArea()) return;
         this.onTileObjectSpawned(wallObjectDespawned.getWallObject(), DESPAWNED, WALL_OBJECT);
     }
 
@@ -686,6 +704,7 @@ public class EventHandler {
 
     @Subscribe
     private void onOverheadTextChanged(OverheadTextChanged overheadTextChanged) {
+        if (this.plugin.isInBannedArea()) return;
         this.alertManager.getAllEnabledAlertsOfType(OverheadTextAlert.class)
             .filter(alert -> alert.getNpcName().isEmpty() || Util.matchPattern(alert::getNpcName, alert::isNpcRegexEnabled, overheadTextChanged.getActor().getName()) != null)
             .forEach(alert -> {
@@ -716,27 +735,31 @@ public class EventHandler {
         }
         var worldLocation = WorldPoint.fromLocalInstance(this.client, localWorld);
 //        log.debug("local: {} | world: {} | localWorld: {} | newWorld: {} - {}", this.client.getLocalPlayer().getLocalLocation(), world, localWorld, worldLocation, worldLocation.getRegionID());
-        this.alertManager.getAllEnabledAlertsOfType(LocationAlert.class)
-            .filter(locationAlert -> locationAlert.shouldFire(worldLocation))
-            .forEach(locationAlert -> {
-                // If we're not repeating, don't fire if previous location is within the area
-                if (!locationAlert.isRepeat() && locationAlert.shouldFire(this.previousLocation)) {
-                    return;
-                }
-                this.fireAlert(locationAlert, new String[] { String.valueOf(worldLocation.getX()), String.valueOf(worldLocation.getY()) });
-            });
+        if (!this.plugin.isInBannedArea()) {
+            this.alertManager.getAllEnabledAlertsOfType(LocationAlert.class)
+                .filter(locationAlert -> locationAlert.shouldFire(worldLocation))
+                .forEach(locationAlert -> {
+                    // If we're not repeating, don't fire if previous location is within the area
+                    if (!locationAlert.isRepeat() && locationAlert.shouldFire(this.previousLocation)) {
+                        return;
+                    }
+                    this.fireAlert(locationAlert, new String[] { String.valueOf(worldLocation.getX()), String.valueOf(worldLocation.getY()) });
+                });
 
-        final WorldPoint prevLoc = this.previousLocation;
-        this.fireAdvancedAlertTriggers(LocationAlert.class,
-            a -> a.shouldFire(worldLocation) && (a.isRepeat() || !a.shouldFire(prevLoc)),
-            a -> new String[]{ String.valueOf(worldLocation.getX()), String.valueOf(worldLocation.getY()) });
+            final WorldPoint prevLoc = this.previousLocation;
+            this.fireAdvancedAlertTriggers(LocationAlert.class,
+                a -> a.shouldFire(worldLocation) && (a.isRepeat() || !a.shouldFire(prevLoc)),
+                a -> new String[]{ String.valueOf(worldLocation.getX()), String.valueOf(worldLocation.getY()) });
+        }
 
         this.previousLocation = worldLocation;
 
         // Push game state into variable nodes in AdvancedAlert graphs
         this.updateVariableNodes(worldLocation);
 
-        this.drainSpawnQueue();
+        if (!this.plugin.isInBannedArea()) {
+            this.drainSpawnQueue();
+        }
     }
 
     public void initializePluginVars() {
@@ -754,6 +777,7 @@ public class EventHandler {
 
     @Subscribe
     private void onPluginChanged(PluginChanged event) {
+        if (this.plugin.isInBannedArea()) return;
         String changedPluginName = event.getPlugin().getName();
         boolean isLoaded = event.isLoaded();
         this.alertManager.getAllEnabledAlertsOfType(AdvancedAlert.class).forEach(adv ->

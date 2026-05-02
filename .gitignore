@@ -10,3 +10,4 @@ nbproject/
 jars/
 test.properties
 .claude/settings.local.json
+.claude/worktrees
