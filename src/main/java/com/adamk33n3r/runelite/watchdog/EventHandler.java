@@ -819,6 +819,7 @@ public class EventHandler {
     }
 
     private void fireAdvancedAlertTriggerNode(AdvancedAlert alert, TriggerNode triggerNode, String[] triggerValues) {
+        if (this.plugin.isInBannedArea()) return;
         if (!alert.isAllEnabled()) return;
 
         Map<TriggerNode, Instant> nodeLastTriggered = this.lastTriggeredAdvanced.computeIfAbsent(alert, k -> new ConcurrentHashMap<>());
@@ -843,6 +844,7 @@ public class EventHandler {
     }
 
     private void fireAlert(Alert alert, String[] triggerValues) {
+        if (this.plugin.isInBannedArea()) return;
         // Don't fire if it is disabled
         if (!alert.isEnabled()) return;
 

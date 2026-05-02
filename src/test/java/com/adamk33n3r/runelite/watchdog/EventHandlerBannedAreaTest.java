@@ -1,6 +1,8 @@
 package com.adamk33n3r.runelite.watchdog;
 
+import com.adamk33n3r.nodegraph.nodes.TriggerNode;
 import com.adamk33n3r.runelite.watchdog.alerts.AdvancedAlert;
+import com.adamk33n3r.runelite.watchdog.alerts.ChatAlert;
 import com.adamk33n3r.runelite.watchdog.alerts.InventoryAlert;
 import com.adamk33n3r.runelite.watchdog.alerts.InventoryAlert.InventoryAlertType;
 import com.adamk33n3r.runelite.watchdog.alerts.StatChangedAlert;
@@ -33,9 +35,13 @@ public class EventHandlerBannedAreaTest extends AlertTestBase {
     @InjectMocks
     EventHandler eventHandler;
 
+    private ChatAlert chatAlert;
+
     @Before
     public void setup() {
         doNothing().when(this.watchdogPlugin).processAlert(any(), any(), anyBoolean());
+        this.chatAlert = new ChatAlert("test");
+        this.chatAlert.setMessage("hello *");
     }
 
     // region Helpers
@@ -80,6 +86,14 @@ public class EventHandlerBannedAreaTest extends AlertTestBase {
             if (c == AdvancedAlert.class) return Stream.empty();
             return Stream.empty();
         }).when(this.alertManager).getAllEnabledAlertsOfType(any());
+    }
+
+    private void stubAlertManagerWith(ChatAlert alert) {
+        Mockito.doAnswer(inv -> {
+            Class<?> clazz = inv.getArgument(0);
+            if (clazz == ChatAlert.class) return Stream.of(alert);
+            return Stream.empty();
+        }).when(this.alertManager).getAllEnabledAlertsOfType(Mockito.any());
     }
 
     // endregion
@@ -181,5 +195,58 @@ public class EventHandlerBannedAreaTest extends AlertTestBase {
         doReturn(false).when(this.watchdogPlugin).isInBannedArea();
         this.eventHandler.onItemContainerChanged(this.inventoryEvent(full));
         verify(this.watchdogPlugin).processAlert(eq(alert), any(), anyBoolean());
+    }
+
+    @Test
+    public void bannedArea_regularAlert_doesNotProcessAlert() {
+        Mockito.doReturn(true).when(this.watchdogPlugin).isInBannedArea();
+
+        this.eventHandler.onChatMessage(mockGameMessage("hello world"));
+
+        Mockito.verify(this.watchdogPlugin, Mockito.never())
+            .processAlert(Mockito.any(), Mockito.any(), Mockito.anyBoolean());
+    }
+
+    @Test
+    public void notBannedArea_regularAlert_doesProcessAlert() {
+        Mockito.doReturn(false).when(this.watchdogPlugin).isInBannedArea();
+        stubAlertManagerWith(this.chatAlert);
+
+        this.eventHandler.onChatMessage(mockGameMessage("hello world"));
+
+        Mockito.verify(this.watchdogPlugin, Mockito.times(1))
+            .processAlert(Mockito.any(), Mockito.any(), Mockito.anyBoolean());
+    }
+
+    @Test
+    public void bannedArea_advancedAlert_doesNotFireTriggerNode() {
+        TriggerNode triggerNode = new TriggerNode(this.chatAlert);
+        AdvancedAlert advSpy = Mockito.spy(new AdvancedAlert("adv test"));
+        advSpy.getGraph().add(triggerNode);
+
+        Mockito.doReturn(true).when(this.watchdogPlugin).isInBannedArea();
+
+        this.eventHandler.onChatMessage(mockGameMessage("hello world"));
+
+        Mockito.verify(advSpy, Mockito.never()).fireTriggerNode(Mockito.any(), Mockito.any());
+    }
+
+    @Test
+    public void notBannedArea_advancedAlert_doesFireTriggerNode() {
+        TriggerNode triggerNode = new TriggerNode(this.chatAlert);
+        AdvancedAlert advSpy = Mockito.spy(new AdvancedAlert("adv test"));
+        advSpy.getGraph().add(triggerNode);
+
+        Mockito.doAnswer(inv -> {
+            Class<?> clazz = inv.getArgument(0);
+            if (clazz == AdvancedAlert.class) return Stream.of(advSpy);
+            return Stream.empty();
+        }).when(this.alertManager).getAllEnabledAlertsOfType(Mockito.any());
+
+        Mockito.doReturn(false).when(this.watchdogPlugin).isInBannedArea();
+
+        this.eventHandler.onChatMessage(mockGameMessage("hello world"));
+
+        Mockito.verify(advSpy, Mockito.times(1)).fireTriggerNode(Mockito.eq(triggerNode), Mockito.any());
     }
 }
