@@ -23,7 +23,7 @@ with any amount of unique action types like
 - Screen Flash
 - Custom Sound
 - In-Game Sound Effect
-- Text to Speech (Eleven Labs API key needs Voices and TTS permissions)
+- Text to Speech (Eleven Labs API key needs Voices and TTS permissions, see a section below on how to set it up)
 - Tray Notification
 - Overhead Text
 - Overlay
@@ -93,6 +93,19 @@ To set this up, you have to include and select a dummy file `$1.wav` in the fold
 even though the file itself will not be played.
 
 With [regex](https://en.wikipedia.org/wiki/Regular_expression) enabled, you instead use parenthesis `()` to surround the text you wish to capture.
+
+## Setting up Eleven Labs API key for Text to Speech
+- Login or register a new account on [Eleven Labs](https://elevenlabs.io/) (free)
+- Go to the Developers page, then click the tab "API Keys" and click "Create key”.
+- On a new API creation, you can name it "Watchdog", and **copy the API key**.
+  - **Paste the API key** to the "Eleven Labs API Keys" text field in Watchdog's RL settings under the "Text to Speech" section.
+  - Tick "Enable TTS" at the top of the Watchdog settings.
+- You need to grant two permissions on the API you just created for the TTS function to start working:
+- Go back to Eleven Labs site, in the API keys page, click "Edit" on your Watchdog's API:
+  - **Grant "Access" permission to "Text to Speech"**
+  - **Grant "Read" permission to "Voices"**
+  - Press the "Save Changes" button
+- If you followed the instructions properly, the TTS functionality should work. You can run a TTS test on Watchdog.
 
 ## Attribution
 This project uses the [JACo MP3 Player](http://jacomp3player.sourceforge.net) to play mp3 files. Its source can be found [here](https://sourceforge.net/p/jacomp3player/code/HEAD/tree/) and is licensed under LGPL which you can find [here](./ThirdPartyLicenses.txt) or otherwise [here](https://www.gnu.org/licenses/lgpl-3.0.en.html).
