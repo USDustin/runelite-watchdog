@@ -6,106 +6,97 @@
 
 [![ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/T6T0JH18I)
 
-Create custom alerts triggered by
-- Game Messages (supports glob pattern or regex)
-- Player Chat Messages (supports glob pattern or regex)
-- Overhead Text (supports glob pattern or regex)
-- Stat Drain/Change
-- Sound Fired (trigger on a sound effect playing)
-- Notifications (supports glob pattern or regex. allows you to hook into existing notifications, even if you have the alerts off in Runelite. For example low prayer, idle, tempoross, etc) 
-- Inventory Changes
-- Object/Item/NPC Spawned
-- XP Drop
-- Location
+Create custom in-game alerts triggered by specific events, each firing one or more configurable actions. For full documentation, see the **[wiki](https://github.com/adamk33n3r/runelite-watchdog/wiki)**.
 
-with any amount of unique action types like
-- Game Message
-- Screen Flash
-- Custom Sound
-- In-Game Sound Effect
-- Text to Speech (Eleven Labs API key needs Voices and TTS permissions, see a section below on how to set it up)
-- Tray Notification
-- Overhead Text
-- Overlay
-- Popup
-- Screen Marker
-- Object Marker
-- Request Focus
-- Dink Notification
-- Plugin Message
-- RuneLite Notification (to trigger things like RL Tray Notifications)
+## Alerts
 
-_You can set defaults for the actions in the plugin config_
+| Alert | What it watches |
+|---|---|
+| [Game Message](https://github.com/adamk33n3r/runelite-watchdog/wiki/Game-Message-Alert) | System/server messages in the chat box |
+| [Player Chat Message](https://github.com/adamk33n3r/runelite-watchdog/wiki/Player-Chat-Message-Alert) | Messages from other players |
+| [Overhead Text](https://github.com/adamk33n3r/runelite-watchdog/wiki/Overhead-Text-Alert) | Text displayed above NPCs or players |
+| [Stat Changed](https://github.com/adamk33n3r/runelite-watchdog/wiki/Stat-Changed-Alert) | Skill level changes (boosts, drains, thresholds) |
+| [XP Drop](https://github.com/adamk33n3r/runelite-watchdog/wiki/XP-Drop-Alert) | Receiving XP in a chosen skill |
+| [Sound Fired](https://github.com/adamk33n3r/runelite-watchdog/wiki/Sound-Fired-Alert) | A specific in-game sound effect plays |
+| [Spawned Object](https://github.com/adamk33n3r/runelite-watchdog/wiki/Spawned-Alert) | An object, NPC, item, or player spawns or despawns |
+| [Inventory](https://github.com/adamk33n3r/runelite-watchdog/wiki/Inventory-Alert) | Inventory full/empty, slot count, or item quantity |
+| [Location](https://github.com/adamk33n3r/runelite-watchdog/wiki/Location-Alert) | Player is within range of a world coordinate |
+| [Notification Fired](https://github.com/adamk33n3r/runelite-watchdog/wiki/Notification-Fired-Alert) | Any RuneLite plugin fires a system notification |
 
-For more information on trigger and action types, [see the wiki](https://github.com/adamk33n3r/runelite-watchdog/wiki).
+_Many alert types support glob patterns and regex with [capture groups](https://github.com/adamk33n3r/runelite-watchdog/wiki/Capture-Groups) for dynamic action messages._
 
-**_NOTE: Watchdog is disabled in the following areas:_**
-- Alchemical Hydra
-- Vardorvis
-- Leviathan
-- Whisperer
-- Sucellus
-- Vorkath
-- Inferno
-- Fight Cave
-- Colosseum
-- Kalphite Queen
-- COX
-- TOB
-- TOA
-- Yama
-- Delve Boss (Doom of Mokhaiotl)
-- Nightmare
+## Actions
 
-_Updated 2025/07/25_
+_You can set defaults for actions in the plugin config._
 
+### Text
+
+| Action | What it does |
+|---|---|
+| [Game Message](https://github.com/adamk33n3r/runelite-watchdog/wiki/Game-Message-Notification) | Writes a colored message into your chat box |
+| [Overhead Text](https://github.com/adamk33n3r/runelite-watchdog/wiki/Overhead-Notification) | Displays text above your player character |
+| [Tray Notification](https://github.com/adamk33n3r/runelite-watchdog/wiki/Tray-Notification) | Sends an OS desktop notification |
+| [Plugin Message](https://github.com/adamk33n3r/runelite-watchdog/wiki/Plugin-Message-Notification) | Sends a message event to another RuneLite plugin |
+| [Notification Event](https://github.com/adamk33n3r/runelite-watchdog/wiki/Notification-Event-Notification) | Fires a RuneLite `NotificationFired` event |
+
+### Audio
+
+| Action | What it does |
+|---|---|
+| [In-Game Sound Effect](https://github.com/adamk33n3r/runelite-watchdog/wiki/In-Game-Sound-Effect-Notification) | Plays a built-in OSRS sound by ID |
+| [Custom Sound](https://github.com/adamk33n3r/runelite-watchdog/wiki/Custom-Sound-Notification) | Plays a local `.wav` or `.mp3` file |
+| [Text to Speech](https://github.com/adamk33n3r/runelite-watchdog/wiki/Text-To-Speech-Notification) | Synthesizes speech via Eleven Labs or legacy TTS |
+
+### Visual
+
+| Action | What it does |
+|---|---|
+| [Screen Flash](https://github.com/adamk33n3r/runelite-watchdog/wiki/Screen-Flash-Notification) | Flashes the game screen a custom color |
+| [Overlay](https://github.com/adamk33n3r/runelite-watchdog/wiki/Overlay-Notification) | Displays a text banner on screen |
+| [Popup](https://github.com/adamk33n3r/runelite-watchdog/wiki/Popup-Notification) | Shows a popup styled like a collection log entry |
+| [Screen Marker](https://github.com/adamk33n3r/runelite-watchdog/wiki/Screen-Marker-Notification) | Draws a rectangle marker on a 2D screen region |
+| [Object Marker](https://github.com/adamk33n3r/runelite-watchdog/wiki/Object-Marker-Notification) | Highlights a world object or tile in-game |
+| [Dismiss Overlay](https://github.com/adamk33n3r/runelite-watchdog/wiki/Dismiss-Notifications) | Dismisses a sticky Overlay, Screen Marker, or Object Marker |
+
+### Advanced
+
+| Action | What it does |
+|---|---|
+| [Counter](https://github.com/adamk33n3r/runelite-watchdog/wiki/Counter-Notification) | Increments a persistent counter |
+| [Alert Toggle](https://github.com/adamk33n3r/runelite-watchdog/wiki/Alert-Toggle-Notification) | Enables, disables, or toggles another alert |
+| [Plugin Toggle](https://github.com/adamk33n3r/runelite-watchdog/wiki/Plugin-Toggle-Notification) | Enables, disables, or toggles a RuneLite plugin |
+| [Request Focus](https://github.com/adamk33n3r/runelite-watchdog/wiki/Request-Focus-Notification) | Brings the RuneLite window to the foreground |
+| [Dink](https://github.com/adamk33n3r/runelite-watchdog/wiki/Dink-Notification) | Sends a Discord webhook via the Dink plugin |
+| [Shortest Path](https://github.com/adamk33n3r/runelite-watchdog/wiki/Shortest-Path-Notification) | Sets or clears a route in the Shortest Path plugin |
+
+## Disabled Areas
+
+Watchdog is automatically disabled in the following areas _(updated 2026/01/28)_:
+
+| | | | |
+|---|---|---|---|
+| Alchemical Hydra | Vardorvis | Leviathan | Whisperer |
+| Sucellus | Vorkath | Inferno | Fight Cave |
+| Colosseum | Kalphite Queen | COX | TOB |
+| TOA | Yama | Delve Boss (Doom of Mokhaiotl) | Nightmare |
 
 ## Recommended RuneLite Notification Settings
 ![image](https://github.com/adamk33n3r/runelite-watchdog/assets/1350444/18eb10dd-9ddb-4248-9d5f-ddc335acc103)
 
-Request Focus should be set to `Off` otherwise you will get some wrong behaviors with your background notifications.
+Set **Request Focus** to `Off` to avoid incorrect behavior with background notifications.
 
 ## Examples
 ![Attack Drained Example](https://user-images.githubusercontent.com/1350444/221425644-0211c4d7-2838-4e63-986a-8ab313052ad5.png)
 ![Harvest Example](https://user-images.githubusercontent.com/1350444/221425625-4e246cb6-eff0-4f8f-855f-80fd7b36bc9d.png)
 
 ## Alert Hub
-Add alerts other users have shared directly from the panel! You can check out the [alert hub branch](https://github.com/adamk33n3r/runelite-watchdog/tree/alert-hub) to learn how to upload your own.
+Add alerts shared by other users directly from the panel. See the [alert hub branch](https://github.com/adamk33n3r/runelite-watchdog/tree/alert-hub) to learn how to upload your own.
 
 ![image](https://github.com/adamk33n3r/runelite-watchdog/assets/1350444/08ecf612-11ba-4bd1-b2c3-d624e40ca9a1)
 
-
-## Capture Groups
-Capture groups can make your alerts dynamic by changing the output depending on what triggered the alert.
-
-Any trigger with a text input can use `{}` to create a capture group around the text inside it. You can then use the
-captured text in your alert output by writing `$1`. Multiple brackets can be read sequentially with `$2`, `$3` etc.
-This is useful when using glob [glob](https://en.wikipedia.org/wiki/Glob_(programming)), since the text that was
-globbed can now be captured with `{*}`. 
-
-Say you have a Notification Fired Alert with the Message set to `Your {*} is ready to harvest in {*}`. 
-You could then have a TTS notification set to `Go get your $1 in $2!` which would make it say something like
-`Go get your Ranarr in Ardougne!`.
-
-Another useful output is as the file name for a sound notification. With the above example, we could set the alert
-to play `$1.wav`, which would actually play other files in the same folder such as `ranarr.wav` and `torstol.wav`.
-To set this up, you have to include and select a dummy file `$1.wav` in the folder with the files you wish to use,
-even though the file itself will not be played.
-
-With [regex](https://en.wikipedia.org/wiki/Regular_expression) enabled, you instead use parenthesis `()` to surround the text you wish to capture.
-
-## Setting up Eleven Labs API key for Text to Speech
-- Login or register a new account on [Eleven Labs](https://elevenlabs.io/) (free)
-- Go to the Developers page, then click the tab "API Keys" and click "Create key”.
-- On a new API creation, you can name it "Watchdog", and **copy the API key**.
-  - **Paste the API key** to the "Eleven Labs API Keys" text field in Watchdog's RL settings under the "Text to Speech" section.
-  - Tick "Enable TTS" at the top of the Watchdog settings.
-- You need to grant two permissions on the API you just created for the TTS function to start working:
-- Go back to Eleven Labs site, in the API keys page, click "Edit" on your Watchdog's API:
-  - **Grant "Access" permission to "Text to Speech"**
-  - **Grant "Read" permission to "Voices"**
-  - Press the "Save Changes" button
-- If you followed the instructions properly, the TTS functionality should work. You can run a TTS test on Watchdog.
+## More Info
+- [Capture Groups](https://github.com/adamk33n3r/runelite-watchdog/wiki/Capture-Groups)
+- [Eleven Labs Setup](https://github.com/adamk33n3r/runelite-watchdog/wiki/Text-To-Speech-Notification#eleven-labs-setup)
 
 ## Attribution
-This project uses the [JACo MP3 Player](http://jacomp3player.sourceforge.net) to play mp3 files. Its source can be found [here](https://sourceforge.net/p/jacomp3player/code/HEAD/tree/) and is licensed under LGPL which you can find [here](./ThirdPartyLicenses.txt) or otherwise [here](https://www.gnu.org/licenses/lgpl-3.0.en.html).
+This project uses the [JACo MP3 Player](http://jacomp3player.sourceforge.net) to play mp3 files. Its source is available on [SourceForge](https://sourceforge.net/p/jacomp3player/code/HEAD/tree/) and is licensed under LGPL ([ThirdPartyLicenses.txt](./ThirdPartyLicenses.txt)).
