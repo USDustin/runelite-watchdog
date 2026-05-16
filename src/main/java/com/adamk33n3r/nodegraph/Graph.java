@@ -316,21 +316,11 @@ public class Graph {
                 int delayMs = ((DelayNode) node).getDelayMs().getValue().intValue();
                 if (delayMs > 0) {
                     List<Map.Entry<Node, VarInput<ExecSignal>>> downstream = this.getExecEntriesDownstream(node);
-                    Thread t = new Thread(() -> {
-                        try {
-                            Thread.sleep(delayMs);
-                        } catch (InterruptedException e) {
-                            return;
-                        }
-                        try {
-                            this.executeExecChainBFS(downstream, captureGroups);
-                        } catch (Throwable e) {
-                            log.error("Exception in delayed exec chain", e);
-                            if (this.onError != null) this.onError.accept(e);
-                        }
-                    });
-                    t.setDaemon(true);
-                    t.start();
+                    this.getScheduler().schedule(
+                        this.wrap(() -> this.executeExecChainBFS(downstream, captureGroups)),
+                        delayMs,
+                        TimeUnit.MILLISECONDS
+                    );
                     continue; // Don't add downstream to the immediate BFS queue
                 }
                 // delayMs == 0: fall through and add downstream immediately

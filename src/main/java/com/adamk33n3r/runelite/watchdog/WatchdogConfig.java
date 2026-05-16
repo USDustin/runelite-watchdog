@@ -100,7 +100,7 @@ public interface WatchdogConfig extends Config {
 
     // Backups
     String BACKUP_ENABLED = "backupEnabled";
-    String BACKUP_RETENTION_DAYS = "backupRetentionDays";
+    String BACKUP_RETENTION_COUNT = "backupRetentionCount";
 
     // Hotkeys
     String CLEAR_ALL_HOTKEY = "clearAllHotkey";
@@ -212,7 +212,7 @@ public interface WatchdogConfig extends Config {
     default boolean backupEnabled() { return true; }
 
     @ConfigItem(
-        keyName = BACKUP_RETENTION_DAYS,
+        keyName = BACKUP_RETENTION_COUNT,
         name = "Max Backups",
         description = "How many backup files to keep. Oldest files beyond this limit are deleted.",
         section = backupsSection,

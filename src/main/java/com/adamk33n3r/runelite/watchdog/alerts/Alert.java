@@ -68,6 +68,7 @@ public abstract class Alert {
         this.debounceTime = 0;
     }
 
+    @Nullable
     public TriggerType getType() {
         return Arrays.stream(TriggerType.values())
             .filter(tType -> tType.getImplClass() == this.getClass())
@@ -152,9 +153,10 @@ public abstract class Alert {
     }
 
     public List<String> getKeywords() {
+        var type = this.getType();
         Stream<String> selfKeywords = Stream.of(
             this.getName(),
-            this.getType().getName()
+            type == null ? "Unknown" : type.getName()
         );
 
         if (this instanceof AlertGroup) {

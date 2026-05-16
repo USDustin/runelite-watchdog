@@ -30,15 +30,11 @@ public class ActionNode extends Node {
         this.fireWhenAfk.onChange(this.notification::setFireWhenAFK);
         this.fireWhenAfkSeconds.setValue(this.notification.getFireWhenAFKForSeconds());
         this.fireWhenAfkSeconds.onChange((val) -> this.notification.setFireWhenAFKForSeconds(val.intValue()));
-//        this.delayMilliseconds.setValue(this.notification.getDelayMilliseconds());
-//        this.delayMilliseconds.onChange((val) -> this.notification.setDelayMilliseconds(val.intValue()));
 
         reg(this.enabled);
         reg(this.fireWhenFocused);
         reg(this.fireWhenAfk);
         reg(this.fireWhenAfkSeconds);
-//        reg(this.delayMilliseconds);
-//        reg(this.alertName);
         reg(this.exec);
         reg(this.execOut);
     }
@@ -48,7 +44,6 @@ public class ActionNode extends Node {
         this.notification.setFireWhenFocused(this.fireWhenFocused.getValue());
         this.notification.setFireWhenAFK(this.fireWhenAfk.getValue());
         this.notification.setFireWhenAFKForSeconds(this.fireWhenAfkSeconds.getValue().intValue());
-//        this.notification.setDelayMilliseconds(this.delayMilliseconds.getValue().intValue());
     }
 
     public void fire() {
