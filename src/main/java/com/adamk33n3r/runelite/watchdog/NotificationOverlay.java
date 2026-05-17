@@ -126,7 +126,7 @@ public class NotificationOverlay extends OverlayPanel {
 
     public void clearById(String id) {
         List<OverlayNotificationData> stickiesToDismiss = this.overlayNotificationQueue.stream()
-            .filter(notif -> notif.overlayNotification.isSticky() && Objects.equals(notif.overlayNotification.getId(), id))
+            .filter(notif -> Objects.equals(notif.overlayNotification.getId(), id))
             .collect(Collectors.toList());
         this.overlayNotificationQueue.removeAll(stickiesToDismiss);
     }

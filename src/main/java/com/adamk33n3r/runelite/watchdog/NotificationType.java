@@ -26,9 +26,9 @@ public enum NotificationType implements Displayable {
     ALERT_TOGGLE("Alert Toggle", "Toggle an alert's enabled state", NotificationCategory.ADVANCED, AlertToggle.class),
     PLUGIN_MESSAGE("Plugin Message", "Send a message to another plugin", NotificationCategory.ADVANCED, PluginMessage.class),
     PLUGIN_TOGGLE("Plugin Toggle", "Toggle a plugin's enabled state", NotificationCategory.ADVANCED, PluginToggle.class),
-    DISMISS_OVERLAY("Dismiss Overlay", "Dismiss a sticky overlay by ID", NotificationCategory.ADVANCED, DismissOverlay.class),
-    DISMISS_SCREEN_MARKER("Dismiss Screen Marker", "Dismiss a sticky screen marker by ID", NotificationCategory.ADVANCED, DismissScreenMarker.class),
-    DISMISS_OBJECT_MARKER("Dismiss Object Marker", "Dismiss a sticky object marker by ID", NotificationCategory.ADVANCED, DismissObjectMarker.class),
+    DISMISS_OVERLAY("Dismiss Overlay", "Dismiss an overlay by ID", NotificationCategory.ADVANCED, DismissOverlay.class),
+    DISMISS_SCREEN_MARKER("Dismiss Screen Marker", "Dismiss a screen marker by ID", NotificationCategory.ADVANCED, DismissScreenMarker.class),
+    DISMISS_OBJECT_MARKER("Dismiss Object Marker", "Dismiss an object marker by ID", NotificationCategory.ADVANCED, DismissObjectMarker.class),
     REQUEST_FOCUS("Request Focus", "Requests focus on the window", NotificationCategory.ADVANCED, RequestFocus.class),
     NOTIFICATION_EVENT("Notification Event", "Fire a NotificationFired event so that other plugins may hook into it e.g. RL Tray Notifications", NotificationCategory.ADVANCED, NotificationEvent.class),
     ;
