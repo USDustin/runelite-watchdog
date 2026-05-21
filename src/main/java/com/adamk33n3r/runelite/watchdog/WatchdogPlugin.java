@@ -44,10 +44,11 @@ import okhttp3.OkHttpClient;
 import javax.inject.Inject;
 import javax.swing.SwingUtilities;
 import javax.swing.ToolTipManager;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
 import java.util.Queue;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static net.runelite.api.MenuAction.RUNELITE_OVERLAY_CONFIG;
 
@@ -149,7 +150,7 @@ public class WatchdogPlugin extends Plugin {
     @Getter
     private final Queue<NotificationFired> notificationsQueue = EvictingQueue.create(20);
 
-    private final List<AlertProcessor> alertProcessors = new ArrayList<>();
+    private final ConcurrentHashMap<Alert, Set<AlertProcessor>> alertProcessors = new ConcurrentHashMap<>();
 
     @Getter
     private boolean isInBannedArea = false;
@@ -294,8 +295,13 @@ public class WatchdogPlugin extends Plugin {
         if (alert.getAlertMode() == AlertMode.RESTART) {
             this.stopAlertProcessors(alert);
         }
-        var alertProcessor = new AlertProcessor(alert, triggerValues, forceFire, this.alertProcessors::remove);
-        this.alertProcessors.add(alertProcessor);
+        var alertProcessor = new AlertProcessor(alert, triggerValues, forceFire, ap ->
+            this.alertProcessors.computeIfPresent(alert, (k, v) -> {
+                v.remove(ap);
+                return v.isEmpty() ? null : v;
+            })
+        );
+        this.alertProcessors.computeIfAbsent(alert, k -> ConcurrentHashMap.newKeySet()).add(alertProcessor);
         alertProcessor.start();
     }
 
@@ -305,9 +311,10 @@ public class WatchdogPlugin extends Plugin {
             ((AlertGroup) alert).getAlerts().forEach(this::stopAlertProcessors);
         } else {
             log.debug("alert not group, cancelling only this alert: {}", alert.getName());
-            this.alertProcessors.stream()
-                .filter(ap -> ap.getAlert() == alert)
-                .forEach(AlertProcessor::interrupt);
+            Set<AlertProcessor> processors = this.alertProcessors.get(alert);
+            if (processors != null) {
+                processors.forEach(AlertProcessor::interrupt);
+            }
         }
     }
 
@@ -320,10 +327,7 @@ public class WatchdogPlugin extends Plugin {
     }
 
     public void stopAllAlerts() {
-        for (var alertProcessor : alertProcessors) {
-            alertProcessor.interrupt();
-        }
-        // Just in case it doesn't call the onFinish callback
+        this.alertProcessors.values().forEach(set -> set.forEach(AlertProcessor::interrupt));
         this.alertProcessors.clear();
     }
 
