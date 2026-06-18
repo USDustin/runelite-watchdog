@@ -111,6 +111,10 @@ public enum Region {
         .builder()
         .regionIDs(Set.of(15515))
         .build()),
+    MUSPAH(RegionConfig
+        .builder()
+        .regionIDs(Set.of(11330))
+        .build())
 //    LUMBRIDGE_CASTLE(RegionConfig
 //        .builder()
 //        .regionIDs(Set.of(12850))
