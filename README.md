@@ -56,8 +56,10 @@ For more information on trigger and action types, [see the wiki](https://github.
 - Yama
 - Delve Boss (Doom of Mokhaiotl)
 - Nightmare
+- Muspah
+- Maggot King
 
-_Updated 2025/07/25_
+_Updated 2026/07/01_
 
 
 ## Recommended RuneLite Notification Settings
